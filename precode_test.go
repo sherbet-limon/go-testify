@@ -2,10 +2,11 @@ package main
 
 import (
     "net/http"
-    "net/http/httptest"
     "strconv"
     "strings"
+    "net/http/httptest"
     "testing"
+    "github.com/stretchr/testify/assert"
 )
 
 var cafeList = map[string][]string{
@@ -46,13 +47,29 @@ func mainHandle(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte(answer))
 }
 
-func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
-    totalCount := 4
-    req := ... // здесь нужно создать запрос к сервису
-
+func TestMainHandlerRequest(t *testing.T) {
+    req := httptest.NewRequest("GET", "/cafe?count=2&city=moscow", nil)
     responseRecorder := httptest.NewRecorder()
     handler := http.HandlerFunc(mainHandle)
     handler.ServeHTTP(responseRecorder, req)
+    assert.Equal(t, http.StatusOK, responseRecorder.Code, "Полученный статус не соответствует 200")
 
-    // здесь нужно добавить необходимые проверки
+    body := responseRecorder.Body.String()
+    assert.NotEmpty(t,body, "Тело ответа не должно быть пустым")
+    
+}
+func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
+    totalCount := 4
+    req := httptest.NewRequest("GET", "/cafe?count=5&city=moscow", nil)
+    responseRecorder := httptest.NewRecorder()
+    handler := http.HandlerFunc(mainHandle)
+    handler.ServeHTTP(responseRecorder, req)
+    assert.Equal(t, http.StatusOK, responseRecorder.Code, "Полученный статус не соответствует 200")
+
+    body := responseRecorder.Body.String()
+    assert.NotEmpty(t,body, "Тело ответа не должно быть пустым")
+    list := strings.Split(body, ",")
+    assert.Len(t, list, totalCount)
+}
+func main() {
 }
