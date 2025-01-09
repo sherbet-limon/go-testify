@@ -47,7 +47,7 @@ func mainHandle(w http.ResponseWriter, req *http.Request) {
     w.Write([]byte(answer))
 }
 
-func TestMainHandlerRequest(t *testing.T) {
+func TestMainHandlerStatusOk(t *testing.T) {
     req := httptest.NewRequest("GET", "/cafe?count=2&city=moscow", nil)
     responseRecorder := httptest.NewRecorder()
     handler := http.HandlerFunc(mainHandle)
@@ -71,5 +71,16 @@ func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
     list := strings.Split(body, ",")
     assert.Len(t, list, totalCount)
 }
+func TestCorrectCity(t *testing.T){
+req := httptest.NewRequest("GET", "/cafe?count=2&city=omsk", nil)
+    responseRecorder := httptest.NewRecorder()
+    handler := http.HandlerFunc(mainHandle)
+    handler.ServeHTTP(responseRecorder, req)
+    assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
+
+    body := responseRecorder.Body.String()
+    assert.Equal(t,"wrong city value", body, "Города нет в базе")
+
+} 
 func main() {
 }
